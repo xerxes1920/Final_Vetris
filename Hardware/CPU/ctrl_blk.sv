@@ -1,0 +1,173 @@
+module ctrl_blk(instr, NOP, alu_op,
+isJ, isI, isBr, isR, isSpecial, isReturn, isShift, ifSendRow, ifGetRow, isMoveOrWriteShape,
+reg_write, isJAL);
+
+input [31:0] instr;
+input NOP;
+
+output reg [3:0] alu_op;
+output reg isJ, isI, isBr, isR, isSpecial, isMoveOrWriteShape, reg_write;
+output isReturn, ifSendRow, ifGetRow, isShift, isJAL;
+
+// I think mem_enable can be tied to isSpecial
+// and maybe mem_wr to isMoveOrWriteShape
+
+wire [31:0] real_instr;
+
+assign real_instr = (NOP) ? 32'hFFFFFFFFF : instr;
+
+// check for J-type
+always @(real_instr, NOP)
+begin
+	case (real_instr[31:26])
+		6'b001100 : isJ = 1'b1;
+		6'b001101 : isJ = 1'b1;
+		default : isJ = 1'b0;
+	endcase
+end
+
+// check for I-type
+always @(real_instr, NOP)
+begin
+	case (real_instr[31:26])
+		6'b010010 : isI = 1'b1;
+		6'b010011 : isI = 1'b1;
+		6'b010100 : isI = 1'b1;
+		6'b010101 : isI = 1'b1;
+		6'b010110 : isI = 1'b1;
+		6'b010011 : isI = 1'b1;
+		default : isI = 1'b0;
+	endcase
+end
+
+// check for branches
+always @(real_instr, NOP)
+begin
+	case (real_instr[31:26])
+		6'b001110 : isBr = 1'b1;
+		6'b001111 : isBr = 1'b1;
+		6'b010000 : isBr = 1'b1;
+		6'b010001 : isBr = 1'b1;
+		default : isBr = 1'b0;
+	endcase
+end
+
+// if not jump, imm or branch, is r-type
+assign isR = NOP ? 1'b0 : ~(isJ | isI | isBr);
+
+// check for special instrs
+always @(real_instr, NOP)
+begin
+	case (real_instr[31:26])
+		6'b011001 : isSpecial = 1'b1;
+		6'b011010 : isSpecial = 1'b1;
+		6'b011011 : isSpecial = 1'b1;
+		6'b011100 : isSpecial = 1'b1;
+		6'b011101 : isSpecial = 1'b1;
+		6'b011110 : isSpecial = 1'b1;
+		6'b011111 : isSpecial = 1'b1;
+		default : isSpecial = 1'b0;
+	endcase
+end
+
+always @(real_instr, NOP)
+begin
+	case (real_instr[31:26])
+	    // shift-left
+		6'b000000 : alu_op = 4'b0000;
+		6'b000010 : alu_op = 4'b0000;
+		// shift-right
+		6'b000001 : alu_op = 4'b0001;
+		6'b000011 : alu_op = 4'b0001;
+		// adds
+		6'b000101 : alu_op = 4'b0010;
+		6'b010010 : alu_op = 4'b0010;
+		// subs
+		6'b000110 : alu_op = 4'b0011;
+		6'b010011 : alu_op = 4'b0011;
+		// ands
+		6'b000111 : alu_op = 4'b0100;
+		6'b010100 : alu_op = 4'b0100;
+		// ors
+		6'b001000 : alu_op = 4'b0101;
+		6'b010101 : alu_op = 4'b0101;
+		// xors
+		6'b001001 : alu_op = 4'b0110;
+		6'b010110 : alu_op = 4'b0110;
+		// nors
+		6'b001010 : alu_op = 4'b0111;
+		// slt
+		6'b010011 : alu_op = 4'b1000;
+		// exp
+		6'b100000 : alu_op = 4'b1001;
+		// move right
+		6'b011011 : alu_op = 4'b1010;
+		// move left
+		6'b011010 : alu_op = 4'b1011;
+		// move down
+		6'b011100 : alu_op = 4'b1100;
+		// write shape
+		6'b011001 : alu_op = 4'b1101;
+		default : alu_op = 4'b1111;
+	endcase
+end
+
+// Sets
+/**always @(posedge NOP)
+begin
+	isJ = 0;
+	isI = 0;
+	isBr = 0;
+	alu_op = 4'h0;
+	isMoveOrWriteShape = 0;
+	reg_write = 0;
+end**/
+
+assign isReturn = NOP ? 1'b0 : (instr[31:26] == 6'b010111);
+assign ifSendRow = NOP ? 1'b0 : (instr[31:26] == 6'b011110);
+assign ifGetRow = NOP ? 1'b0 : (instr[31:26] == 6'b011111);
+assign isShift = NOP ? 1'b0 : ((instr[31:26] == 6'b000000) | (instr[31:26] == 6'b000001));
+assign isJAL = NOP ? 1'b0 : (instr[31:26] == 6'b001101);
+
+always @(real_instr, NOP)
+begin
+	case (real_instr[31:26])
+		6'b011001 : isMoveOrWriteShape = 1'b1;
+		6'b011010 : isMoveOrWriteShape = 1'b1;
+		6'b011011 : isMoveOrWriteShape = 1'b1;
+		6'b011100 : isMoveOrWriteShape = 1'b1;
+		default : isMoveOrWriteShape = 1'b0;
+	endcase
+end
+
+always @(real_instr, NOP)
+begin
+	case (real_instr[31:26])
+		6'b000000 : reg_write = 1'b1;
+		6'b000001 : reg_write = 1'b1;
+		6'b000010 : reg_write = 1'b1;
+		6'b000011 : reg_write = 1'b1;
+		6'b000101 : reg_write = 1'b1;
+		6'b000110 : reg_write = 1'b1;
+		6'b000111 : reg_write = 1'b1;
+		6'b001000 : reg_write = 1'b1;
+		6'b001001 : reg_write = 1'b1;
+		6'b001010 : reg_write = 1'b1;
+		6'b001011 : reg_write = 1'b1;
+		6'b001101 : reg_write = 1'b1;
+		6'b010010 : reg_write = 1'b1;
+		6'b010011 : reg_write = 1'b1;
+		6'b010100 : reg_write = 1'b1;
+		6'b010101 : reg_write = 1'b1;
+		6'b010110 : reg_write = 1'b1;
+		6'b011001 : reg_write = 1'b1;
+		6'b011010 : reg_write = 1'b1;
+		6'b011011 : reg_write = 1'b1;
+		6'b011100 : reg_write = 1'b1;
+		6'b011111 : reg_write = 1'b1;
+		6'b100000 : reg_write = 1'b1;
+		default : reg_write = 1'b0;
+	endcase
+end
+
+endmodule

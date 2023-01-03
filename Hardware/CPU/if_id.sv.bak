@@ -1,0 +1,22 @@
+module if_id(instr_in, instr_out, PC_plus_four_in, PC_plus_four_out, clk, rst, flush, IF_ID_Write);
+
+input reg [31:0] instr_in, PC_plus_four_in;
+//input reg clk, rst;
+input flush, clk, rst;
+input IF_ID_Write;
+
+output reg [31:0] instr_out, PC_plus_four_out;
+
+
+always_ff @(posedge clk, negedge rst, flush) begin
+	if(!rst | flush) begin
+		instr_out <= 0;
+		PC_plus_four_out <= 0;
+	end else if(IF_ID_Write) begin
+		instr_out <= instr_in;
+		PC_plus_four_out <= PC_plus_four_in;
+	end
+end
+
+
+endmodule

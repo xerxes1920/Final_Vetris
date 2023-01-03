@@ -1,0 +1,73 @@
+module id_ex(instr_in, instr_out, PC_plus_four_in, PC_plus_four_out, PC_plus_imm_in, PC_plus_imm_out,
+PC_plus_8_in, PC_plus_8_out, imm_in, imm_out, data_out_1_in, data_out_1_out, data_out_2_in, data_out_2_out,
+writeregsel_in, writeregsel_out, aluop_in, aluop_out, isJ_in, isBR_in, isReturn_in, isShift_in, ifGetRow_in, ifSendRow_in,
+isMoveOrWriteShape_in, isSpecial_in, isJ_out, isBR_out, isReturn_out, isShift_out, ifGetRow_out, ifSendRow_out,
+isMoveOrWriteShape_out, isSpecial_out, isI_in, isI_out, isJAL_in, isJAL_out,
+regWrite_in, regWrite_out, clk, rst, flush);
+
+input reg [31:0] instr_in, PC_plus_four_in, PC_plus_imm_in, PC_plus_8_in,
+	imm_in, data_out_1_in, data_out_2_in;
+input reg [4:0] writeregsel_in;
+input reg [3:0] aluop_in;
+input reg isJ_in, isBR_in, isReturn_in, isShift_in, ifGetRow_in, ifSendRow_in,
+	isMoveOrWriteShape_in, isSpecial_in, clk, rst;
+input isI_in, isJAL_in, flush;
+input regWrite_in;
+
+output reg [31:0] instr_out, PC_plus_four_out, PC_plus_imm_out, PC_plus_8_out,
+	imm_out, data_out_1_out, data_out_2_out;
+output reg [4:0] writeregsel_out;
+output reg [3:0] aluop_out;
+output reg isJ_out, isBR_out, isReturn_out, isShift_out, ifGetRow_out, ifSendRow_out,
+	isMoveOrWriteShape_out, isSpecial_out;
+output reg isI_out, isJAL_out;
+output reg regWrite_out;
+
+always_ff @(posedge clk, negedge rst, flush) begin
+	if(!rst | flush) begin
+		instr_out <= 0;
+		PC_plus_four_out <= 0;
+		PC_plus_imm_out <= 0;
+		PC_plus_8_out <= 0;
+		imm_out <= 0;
+		data_out_1_out <= 0;
+		data_out_2_out <= 0;
+		writeregsel_out <= 0;
+		isJ_out <= 0;
+		isBR_out <= 0;
+		isReturn_out <= 0;
+		isShift_out <= 0;
+		ifGetRow_out <= 0;
+		ifSendRow_out <= 0;
+		isMoveOrWriteShape_out <= 0;
+		isSpecial_out <= 0;
+		isI_out <= 0;
+		regWrite_out <= 0;
+		isJAL_out <= 0;
+		aluop_out <= 0;
+	end else begin
+		instr_out <= instr_in;
+		PC_plus_four_out <= PC_plus_four_in;
+		PC_plus_imm_out <= PC_plus_imm_in;
+		PC_plus_8_out <= PC_plus_8_in;
+		imm_out <= imm_in;
+		data_out_1_out <= data_out_1_in;
+		data_out_2_out <= data_out_2_in;
+		writeregsel_out <= writeregsel_in;
+		isJ_out <= isJ_in;
+		isBR_out <= isBR_in;
+		isReturn_out <= isReturn_in;
+		isShift_out <= isShift_in;
+		ifGetRow_out <= ifGetRow_in;
+		ifSendRow_out <= ifSendRow_in;
+		isMoveOrWriteShape_out <= isMoveOrWriteShape_in;
+		isSpecial_out <= isSpecial_in;
+		isI_out <= isI_in;
+		regWrite_out <= regWrite_in;
+		isJAL_out <= isJAL_in;
+		aluop_out <= aluop_in;
+	end
+end
+
+
+endmodule
