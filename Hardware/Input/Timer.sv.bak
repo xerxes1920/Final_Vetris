@@ -1,0 +1,36 @@
+module Timer(
+    clk,
+    rst,
+    timeVal,
+    rstTimer,
+    moveDown
+);
+
+logic input clk;
+logic input rst;
+logic input [31:0] timeVal;
+logic input rstTimer;
+logic output moveDown;
+
+logic [31:0] countDown;
+logic [31:0] setValue;
+
+assign moveDown = countDown == 32'b0 ? 1'b1 : 1'b0;
+assign setValue = 32'd25_000_000;
+
+always_ff @(posedge clk or negedge rst) begin
+    if(!rst) begin
+        countDown <= setValue;
+    end
+	else if(rstTimer) begin 
+		countDown <= setValue;
+    else begin
+        if(countDown == 32'b0) begin
+            countDown <= setValue;
+        end
+        else
+            countDown <= countDown - 1'b1;
+    end
+end
+
+endmodule
